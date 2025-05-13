@@ -1,1 +1,758 @@
-<h1>Hello!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trip Planner</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      height: 100vh;
+    }
+    
+    .sidebar {
+      width: 300px;
+      padding: 20px;
+      background-color: #f5f5f5;
+      overflow-y: auto;
+      box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .map-container {
+      flex-grow: 1;
+      position: relative;
+    }
+    
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+    
+    .search-container {
+      margin-bottom: 20px;
+    }
+    
+    input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      box-sizing: border-box;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+    }
+    
+    button {
+      padding: 10px 15px;
+      background-color: #4285F4;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 5px;
+      font-weight: bold;
+    }
+    
+    button:hover {
+      background-color: #3367D6;
+    }
+    
+    .destination-form {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+    
+    .transport-options {
+      display: flex;
+      margin-bottom: 10px;
+    }
+    
+    .transport-options label {
+      margin-right: 10px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .destination-list {
+      margin-top: 20px;
+      flex-grow: 1;
+      overflow-y: auto;
+    }
+    
+    .destination-item {
+      padding: 10px;
+      background-color: white;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: grab;
+    }
+    
+    .destination-item:active {
+      cursor: grabbing;
+    }
+    
+    .destination-name {
+      flex-grow: 1;
+      padding-right: 10px;
+    }
+    
+    .remove-btn {
+      background-color: #DB4437;
+      font-size: 16px;
+      padding: 5px 10px;
+    }
+    
+    .save-section {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid #ddd;
+    }
+    
+    .search-results {
+      position: absolute;
+      width: calc(100% - 20px);
+      background: white;
+      border: 1px solid #ddd;
+      border-radius: 0 0 4px 4px;
+      z-index: 10;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    .search-results div {
+      padding: 10px;
+      cursor: pointer;
+    }
+    
+    .search-results div:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .hint-container {
+      position: relative;
+    }
+    
+    .loading {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(255, 255, 255, 0.8);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    
+    .loading-text {
+      font-size: 24px;
+      color: #4285F4;
+    }
+    
+    #export-preview {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.8);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+    
+    #preview-content {
+      background-color: white;
+      padding: 20px;
+      border-radius: 8px;
+      max-width: 90%;
+      max-height: 90%;
+      overflow: auto;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    #preview-image {
+      max-width: 100%;
+      max-height: 70vh;
+      margin-bottom: 20px;
+    }
+    
+    .preview-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .destination-header {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+    
+    .destination-list-on-image {
+      width: 100%;
+      padding: 10px;
+      background-color: white;
+      border-top: 1px solid #ddd;
+      margin-top: 10px;
+    }
+    
+    #export-container {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="sidebar">
+    <div class="search-container">
+      <h2>Trip Planner</h2>
+      <label for="country-input">Enter Country:</label>
+      <div class="hint-container">
+        <input type="text" id="country-input" placeholder="e.g., France">
+        <div id="country-results" class="search-results"></div>
+      </div>
+      <button id="search-country-btn">Search Country</button>
+    </div>
+    
+    <div class="destination-form">
+      <label for="destination-input">Add Destination:</label>
+      <div class="hint-container">
+        <input type="text" id="destination-input" placeholder="e.g., Eiffel Tower, Paris">
+        <div id="destination-results" class="search-results"></div>
+      </div>
+      
+      <div class="transport-options">
+        <label>
+          <input type="radio" name="travel-mode" value="DRIVING" checked> 
+          By Car
+        </label>
+        <label>
+          <input type="radio" name="travel-mode" value="WALKING"> 
+          By Foot
+        </label>
+        <label>
+          <input type="radio" name="travel-mode" value="TRANSIT"> 
+          Public Transport
+        </label>
+      </div>
+      
+      <button id="add-destination-btn">Add to Route (+)</button>
+    </div>
+    
+    <div class="destination-list">
+      <div class="destination-header">Destinations (drag to reorder):</div>
+      <div id="destination-list"></div>
+    </div>
+    
+    <div class="save-section">
+      <button id="save-btn">Save Trip as Image</button>
+    </div>
+  </div>
+  
+  <div class="map-container">
+    <div id="map"></div>
+    <div class="loading" id="loading">
+      <div class="loading-text">Loading...</div>
+    </div>
+  </div>
+  
+  <div id="export-preview">
+    <div id="preview-content">
+      <img id="preview-image" src="">
+      <div class="preview-buttons">
+        <button id="download-btn">Download</button>
+        <button id="close-preview-btn">Close</button>
+      </div>
+    </div>
+  </div>
+  
+  <div id="export-container">
+    <div id="map-export"></div>
+    <div id="destinations-export" class="destination-list-on-image"></div>
+  </div>
+  
+  <script>
+    // Global variables
+    let map;
+    let directionsService;
+    let directionsRenderer;
+    let autocompleteService;
+    let placesService;
+    let geocoder;
+    let bounds;
+    let markers = [];
+    let destinations = [];
+    let sortable;
+    
+    // Initialize the map when the Google Maps API is loaded
+    function initMap() {
+      // Create map centered on a default location
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 20, lng: 0 },
+        zoom: 2,
+        mapTypeId: google.maps.MapTypeId.ROADMAP
+      });
+      
+      // Initialize services
+      directionsService = new google.maps.DirectionsService();
+      directionsRenderer = new google.maps.DirectionsRenderer({
+        map: map,
+        suppressMarkers: true  // We'll create our own markers
+      });
+      autocompleteService = new google.maps.places.AutocompleteService();
+      placesService = new google.maps.places.PlacesService(map);
+      geocoder = new google.maps.Geocoder();
+      bounds = new google.maps.LatLngBounds();
+      
+      // Setup destination list sorting
+      setupSortable();
+      
+      // Setup event listeners
+      document.getElementById('search-country-btn').addEventListener('click', searchCountry);
+      document.getElementById('add-destination-btn').addEventListener('click', addDestination);
+      document.getElementById('save-btn').addEventListener('click', prepareMapExport);
+      document.getElementById('download-btn').addEventListener('click', downloadImage);
+      document.getElementById('close-preview-btn').addEventListener('click', closePreview);
+      
+      // Set up input event listeners for autocompletion
+      setupAutocomplete('country-input', 'country-results', '(regions)');
+      setupAutocomplete('destination-input', 'destination-results');
+    }
+    
+    // Set up autocomplete functionality for input fields
+    function setupAutocomplete(inputId, resultsId, types = '') {
+      const input = document.getElementById(inputId);
+      const results = document.getElementById(resultsId);
+      
+      input.addEventListener('input', debounce(function() {
+        if (input.value.length < 2) {
+          results.style.display = 'none';
+          return;
+        }
+        
+        // Get autocomplete predictions
+        const request = {
+          input: input.value,
+          types: types ? [types] : []
+        };
+        
+        autocompleteService.getPlacePredictions(request, (predictions, status) => {
+          results.innerHTML = '';
+          
+          if (status !== google.maps.places.PlacesServiceStatus.OK || !predictions) {
+            results.style.display = 'none';
+            return;
+          }
+          
+          // Display predictions
+          results.style.display = 'block';
+          predictions.slice(0, 5).forEach(prediction => {
+            const div = document.createElement('div');
+            div.textContent = prediction.description;
+            div.addEventListener('click', function() {
+              input.value = prediction.description;
+              results.style.display = 'none';
+              
+              // If this is the destination input, we don't search immediately
+              if (inputId === 'country-input') {
+                searchCountry();
+              }
+            });
+            results.appendChild(div);
+          });
+        });
+      }, 300));
+      
+      // Hide results when clicking outside
+      document.addEventListener('click', function(event) {
+        if (!input.contains(event.target) && !results.contains(event.target)) {
+          results.style.display = 'none';
+        }
+      });
+    }
+    
+    // Debounce function to limit API calls
+    function debounce(func, wait) {
+      let timeout;
+      return function() {
+        const context = this;
+        const args = arguments;
+        clearTimeout(timeout);
+        timeout = setTimeout(() => {
+          func.apply(context, args);
+        }, wait);
+      };
+    }
+    
+    // Search for a country and display it on the map
+    function searchCountry() {
+      const country = document.getElementById('country-input').value;
+      if (!country) return;
+      
+      showLoading();
+      
+      geocoder.geocode({ 'address': country }, function(results, status) {
+        if (status === google.maps.GeocoderStatus.OK && results[0]) {
+          // Clear previous markers and routes
+          clearMap();
+          
+          // Center map on country
+          map.setCenter(results[0].geometry.location);
+          
+          // Set zoom level based on the viewport of the result
+          if (results[0].geometry.viewport) {
+            map.fitBounds(results[0].geometry.viewport);
+          } else {
+            map.setZoom(6);
+          }
+          
+          // Reset destinations
+          destinations = [];
+          document.getElementById('destination-list').innerHTML = '';
+          
+          hideLoading();
+        } else {
+          alert('Country not found: ' + status);
+          hideLoading();
+        }
+      });
+    }
+    
+    // Add a destination to the route
+    function addDestination() {
+      const destinationInput = document.getElementById('destination-input');
+      const destination = destinationInput.value;
+      
+      if (!destination) return;
+      
+      showLoading();
+      
+      // Find the place
+      const request = {
+        query: destination,
+        fields: ['name', 'geometry', 'formatted_address']
+      };
+      
+      placesService.findPlaceFromQuery(request, function(results, status) {
+        if (status === google.maps.places.PlacesServiceStatus.OK && results[0]) {
+          const place = results[0];
+          
+          // Create a new destination object
+          const newDestination = {
+            id: Date.now(), // Unique identifier
+            name: place.name || destination,
+            address: place.formatted_address || '',
+            location: place.geometry.location,
+            travelMode: getSelectedTravelMode()
+          };
+          
+          // Add destination to the list
+          destinations.push(newDestination);
+          
+          // Add to UI
+          addDestinationToList(newDestination);
+          
+          // Update the map
+          updateMap();
+          
+          // Clear input field
+          destinationInput.value = '';
+        } else {
+          alert('Place not found: ' + status);
+          hideLoading();
+        }
+      });
+    }
+    
+    // Get the currently selected travel mode
+    function getSelectedTravelMode() {
+      const travelModeInputs = document.getElementsByName('travel-mode');
+      for (const input of travelModeInputs) {
+        if (input.checked) {
+          return input.value;
+        }
+      }
+      return 'DRIVING'; // Default
+    }
+    
+    // Add a destination to the UI list
+    function addDestinationToList(destination) {
+      const list = document.getElementById('destination-list');
+      
+      const item = document.createElement('div');
+      item.className = 'destination-item';
+      item.dataset.id = destination.id;
+      
+      const nameDiv = document.createElement('div');
+      nameDiv.className = 'destination-name';
+      nameDiv.textContent = destination.name;
+      if (destination.address) {
+        nameDiv.textContent += ` (${destination.address})`;
+      }
+      
+      const travelModeSpan = document.createElement('span');
+      travelModeSpan.textContent = ` [${getTravelModeLabel(destination.travelMode)}]`;
+      nameDiv.appendChild(travelModeSpan);
+      
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'remove-btn';
+      removeBtn.textContent = '-';
+      removeBtn.addEventListener('click', function() {
+        removeDestination(destination.id);
+      });
+      
+      item.appendChild(nameDiv);
+      item.appendChild(removeBtn);
+      list.appendChild(item);
+    }
+    
+    // Get a human-readable label for the travel mode
+    function getTravelModeLabel(mode) {
+      switch (mode) {
+        case 'DRIVING': return 'By Car';
+        case 'WALKING': return 'By Foot';
+        case 'TRANSIT': return 'Public Transport';
+        default: return 'By Car';
+      }
+    }
+    
+    // Remove a destination from the route
+    function removeDestination(id) {
+      // Remove from destinations array
+      destinations = destinations.filter(dest => dest.id !== id);
+      
+      // Remove from UI
+      const item = document.querySelector(`.destination-item[data-id="${id}"]`);
+      if (item) {
+        item.remove();
+      }
+      
+      // Update the map
+      updateMap();
+    }
+    
+    // Update the map with the current destinations
+    function updateMap() {
+      if (destinations.length === 0) {
+        clearMap();
+        hideLoading();
+        return;
+      }
+      
+      // Clear previous route
+      clearMarkers();
+      
+      // Add markers for each destination
+      destinations.forEach((dest, index) => {
+        const marker = new google.maps.Marker({
+          position: dest.location,
+          map: map,
+          label: (index + 1).toString(),
+          title: dest.name
+        });
+        
+        markers.push(marker);
+        bounds.extend(dest.location);
+      });
+      
+      // If only one destination, just show the marker
+      if (destinations.length === 1) {
+        map.panTo(destinations[0].location);
+        map.setZoom(14);
+        hideLoading();
+        return;
+      }
+      
+      // Calculate and display the route if there are at least 2 destinations
+      calculateAndDisplayRoute();
+    }
+    
+    // Calculate and display the route between destinations
+    function calculateAndDisplayRoute() {
+      if (destinations.length < 2) {
+        hideLoading();
+        return;
+      }
+      
+      const waypoints = destinations.slice(1, -1).map(dest => {
+        return {
+          location: dest.location,
+          stopover: true
+        };
+      });
+      
+      const origin = destinations[0].location;
+      const destination = destinations[destinations.length - 1].location;
+      
+      // Determine if all destinations use the same travel mode
+      const firstTravelMode = destinations[0].travelMode;
+      const allSameTravelMode = destinations.every(dest => dest.travelMode === firstTravelMode);
+      
+      if (allSameTravelMode) {
+        // If all destinations use the same travel mode, we can use a single directions request
+        const request = {
+          origin: origin,
+          destination: destination,
+          waypoints: waypoints,
+          travelMode: google.maps.TravelMode[firstTravelMode],
+          optimizeWaypoints: false
+        };
+        
+        directionsService.route(request, function(response, status) {
+          if (status === google.maps.DirectionsStatus.OK) {
+            directionsRenderer.setDirections(response);
+            hideLoading();
+          } else {
+            alert('Directions request failed due to ' + status);
+            hideLoading();
+          }
+        });
+      } else {
+        // If destinations use different travel modes, we need multiple requests
+        // This is a simplified approach - for a full implementation you might need to handle
+        // direction rendering differently for mixed travel modes
+        alert('Mixed travel modes are complex to display. For best results, use the same travel mode for all destinations.');
+        hideLoading();
+      }
+    }
+    
+    // Clear all markers from the map
+    function clearMarkers() {
+      for (let marker of markers) {
+        marker.setMap(null);
+      }
+      markers = [];
+      bounds = new google.maps.LatLngBounds();
+    }
+    
+    // Clear the entire map (markers and routes)
+    function clearMap() {
+      clearMarkers();
+      directionsRenderer.setDirections({ routes: [] });
+    }
+    
+    // Set up the sortable functionality for the destination list
+    function setupSortable() {
+      const list = document.getElementById('destination-list');
+      sortable = new Sortable(list, {
+        animation: 150,
+        onEnd: function() {
+          // Reorder destinations array based on the new DOM order
+          const newDestinations = [];
+          const items = document.querySelectorAll('.destination-item');
+          
+          items.forEach(item => {
+            const id = parseInt(item.dataset.id);
+            const dest = destinations.find(d => d.id === id);
+            if (dest) {
+              newDestinations.push(dest);
+            }
+          });
+          
+          destinations = newDestinations;
+          updateMap();
+        }
+      });
+    }
+    
+    // Prepare the map for export as an image
+    function prepareMapExport() {
+      if (destinations.length === 0) {
+        alert('Please add at least one destination before saving.');
+        return;
+      }
+      
+      showLoading();
+      
+      // Create a clone of the map for export
+      const mapDiv = document.getElementById('map');
+      const exportContainer = document.getElementById('export-container');
+      const destinationsExport = document.getElementById('destinations-export');
+      
+      // Create destinations list for the image
+      destinationsExport.innerHTML = '<h3>Trip Destinations:</h3>';
+      const list = document.createElement('ol');
+      destinations.forEach(dest => {
+        const item = document.createElement('li');
+        item.textContent = `${dest.name} [${getTravelModeLabel(dest.travelMode)}]`;
+        list.appendChild(item);
+      });
+      destinationsExport.appendChild(list);
+      
+      // Make export container visible temporarily
+      exportContainer.style.display = 'block';
+      
+      // Capture the current map state
+      html2canvas(mapDiv, {
+        useCORS: true,
+        allowTaint: true,
+        scale: 1.5, // Higher quality
+      }).then(canvas => {
+        // Show the preview
+        document.getElementById('preview-image').src = canvas.toDataURL('image/png');
+        document.getElementById('export-preview').style.display = 'flex';
+        exportContainer.style.display = 'none';
+        hideLoading();
+      }).catch(err => {
+        console.error('Error capturing map:', err);
+        alert('Failed to create image. Please try again.');
+        exportContainer.style.display = 'none';
+        hideLoading();
+      });
+    }
+    
+    // Download the map image
+    function downloadImage() {
+      const imgSrc = document.getElementById('preview-image').src;
+      const link = document.createElement('a');
+      link.download = 'trip-plan.png';
+      link.href = imgSrc;
+      link.click();
+    }
+    
+    // Close the preview modal
+    function closePreview() {
+      document.getElementById('export-preview').style.display = 'none';
+    }
+    
+    // Show loading indicator
+    function showLoading() {
+      document.getElementById('loading').style.display = 'flex';
+    }
+    
+    // Hide loading indicator
+    function hideLoading() {
+      document.getElementById('loading').style.display = 'none';
+    }
+    
+    // Helper function to handle API errors
+    function handleApiError(error) {
+      console.error('API Error:', error);
+      alert('An error occurred. Please try again.');
+      hideLoading();
+    }
+  </script>
+  
+  <!-- Replace YOUR_API_KEY with an actual Google Maps API key -->
+  <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB37TERO8dyMRJcqBwpW_-LfKE9hVMNtfY&libraries=places&callback=initMap"
+    onerror="handleApiError(event)">
+  </script>
+</body>
+</html>
