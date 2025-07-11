@@ -1,0 +1,209 @@
+body {
+    font-family: 'Arial', sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-color: #f0f2f5;
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.container {
+    position: relative;
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    padding: 25px;
+    text-align: center;
+    width: 95%;
+    max-width: 1000px; /* Adjust max-width based on image size */
+    box-sizing: border-box;
+}
+
+.counter-box {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #e6f7ff;
+    border: 1px solid #91d5ff;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1.2em;
+    color: #003a8c;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.map-container {
+    margin-top: 20px;
+    position: relative;
+    display: inline-block;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden; /* Ensures image corners match container */
+}
+
+#japanMap {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    border-radius: 8px; /* Match container border-radius */
+}
+
+/* Popups */
+.popup {
+    display: none; /* Hidden by default */
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.6); /* Darker overlay */
+    display: flex; /* Use flexbox for centering */
+    justify-content: center;
+    align-items: center;
+}
+
+.popup-content {
+    background-color: #fefefe;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.35);
+    width: 90%;
+    max-width: 450px;
+    position: relative;
+    text-align: left;
+    transform: translateY(-20px); /* Slight animation for popup */
+    transition: transform 0.3s ease-out;
+}
+
+.popup.show .popup-content {
+    transform: translateY(0);
+}
+
+.close-button {
+    color: #999;
+    position: absolute;
+    top: 15px;
+    right: 20px;
+    font-size: 32px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.close-button:hover,
+.close-button:focus {
+    color: #333;
+}
+
+#popupPrefectureName {
+    font-size: 1.8em;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+#checklistItems div {
+    margin-bottom: 12px;
+}
+
+#checklistItems label {
+    display: flex; /* Align checkbox and text nicely */
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.1em;
+    color: #555;
+}
+
+#checklistItems input[type="checkbox"] {
+    margin-right: 12px;
+    transform: scale(1.3); /* Larger checkboxes */
+    accent-color: #007bff; /* Custom color for checked state */
+    cursor: pointer;
+}
+
+.instagram-popup .popup-content {
+    max-width: 350px; /* Smaller for Instagram popup */
+}
+
+#instagramIdInput {
+    width: calc(100% - 20px);
+    padding: 12px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1.1em;
+    box-sizing: border-box;
+}
+
+#saveInstagramId {
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.1em;
+    transition: background-color 0.2s ease;
+}
+
+#saveInstagramId:hover {
+    background-color: #218838;
+}
+
+.instagram-display {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    background-color: #fff0f5;
+    border: 1px solid #ffb3d9;
+    padding: 10px 15px;
+    border-radius: 8px;
+    font-weight: bold;
+    font-size: 1em;
+    color: #e91e63;
+    cursor: pointer; /* Indicate it's clickable */
+    transition: background-color 0.2s ease;
+    z-index: 10;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.instagram-display:hover {
+    background-color: #ffdaeb;
+}
+
+#savePngButton {
+    margin-top: 30px;
+    padding: 12px 25px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    font-weight: bold;
+    transition: background-color 0.2s ease, transform 0.1s ease;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.2);
+}
+
+#savePngButton:hover {
+    background-color: #0056b3;
+    transform: translateY(-2px);
+}
+
+#savePngButton:active {
+    transform: translateY(0);
+}
+
+/* Hide these elements when taking screenshot */
+.hide-on-screenshot {
+    visibility: hidden !important;
+}
