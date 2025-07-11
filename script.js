@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+    console.log("DOM Loaded!");
     const japanMap = document.getElementById('japanMap');
     const japanPrefecturesMap = document.getElementById('japanPrefecturesMap');
     const prefecturePopup = document.getElementById('prefecturePopup');
@@ -455,3 +456,5 @@ document.addEventListener('DOMContentLoaded', () => {
         updateCounter(); // Update counter based on loaded data
     }
 });
+
+
