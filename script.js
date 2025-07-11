@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const japanMap = document.getElementById('japanMap');
-    const japanPrefecturesMap = document.getElementById('japanPrefecturesMap');
+    const abstractMapContainer = document.getElementById('abstractMapContainer');
     const prefecturePopup = document.getElementById('prefecturePopup');
     const popupCloseButton = prefecturePopup.querySelector('.close-button');
     const popupPrefectureName = document.getElementById('popupPrefectureName');
@@ -14,9 +13,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayedInstagramId = document.getElementById('displayedInstagramId');
     const savePngButton = document.getElementById('savePngButton');
 
-    // Data structure for prefecture items
-    // IMPORTANT: Replace dummy items with actual items for each prefecture.
-    // The 'checked' status will be updated dynamically.
+    // Reference image dimensions (from image_9a3db6.png)
+    // This is used for scaling the coordinates for the abstract map.
+    const REFERENCE_IMAGE_WIDTH = 950;
+    const REFERENCE_IMAGE_HEIGHT = 1250;
+
+    // The desired display width for our abstract map container
+    const DISPLAY_MAP_WIDTH = 760; // Set this in CSS as well
+    const SCALE_FACTOR = DISPLAY_MAP_WIDTH / REFERENCE_IMAGE_WIDTH;
+
+    // Data structure for prefecture items (same as before)
     const prefectureData = {
         "北海道": [
             { id: 'hkd_lavender', name: '富良野のラベンダー畑', checked: false },
@@ -251,6 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 checkbox.addEventListener('change', (event) => {
                     item.checked = event.target.checked;
                     updateCounter();
+                    localStorage.setItem('prefectureData', JSON.stringify(prefectureData)); // Save on change
                 });
 
                 const label = document.createElement('label');
@@ -264,109 +271,124 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Coordinates for each prefecture based on the provided image
-    // These are approximate and should be fine for rectangular clicks.
-    // You might need to fine-tune these by opening the image in an editor
-    // and getting precise pixel coordinates for each rectangle.
+    // Coordinates for each prefecture based on the provided image (pixel values)
+    // These are from your `image_9a3db6.png` reference.
     const prefectureCoords = [
-        { name: "北海道", coords: "721,114,948,252" }, // Top right green block
-        { name: "青森", coords: "721,291,811,338" },
-        { name: "秋田", coords: "721,341,811,388" },
-        { name: "岩手", coords: "813,291,902,338" },
-        { name: "山形", coords: "813,341,902,388" },
-        { name: "宮城", coords: "813,391,902,437" },
-        { name: "福島", coords: "813,440,902,487" },
-        { name: "新潟", coords: "614,354,704,401" },
-        { name: "富山", coords: "614,404,704,451" },
-        { name: "石川", coords: "524,404,612,451" },
-        { name: "福井", coords: "524,454,612,501" },
-        { name: "茨城", coords: "721,490,811,537" },
-        { name: "栃木", coords: "721,540,811,587" },
-        { name: "群馬", coords: "721,590,811,637" },
-        { name: "埼玉", coords: "721,640,811,687" },
-        { name: "千葉", coords: "813,590,902,637" },
-        { name: "東京", coords: "813,640,902,687" },
-        { name: "神奈川", coords: "813,690,902,737" },
-        { name: "山梨", coords: "721,690,811,737" },
-        { name: "長野", coords: "721,740,811,787" },
-        { name: "岐阜", coords: "614,454,704,501" },
-        { name: "静岡", coords: "721,790,811,837" },
-        { name: "愛知", coords: "614,504,704,551" },
-        { name: "三重", coords: "614,554,704,601" },
-        { name: "滋賀", coords: "524,504,612,551" },
-        { name: "京都", coords: "524,554,612,601" },
-        { name: "大阪", coords: "524,604,612,651" },
-        { name: "兵庫", coords: "434,554,522,601" },
-        { name: "奈良", coords: "524,654,612,701" },
-        { name: "和歌山", coords: "524,704,612,751" },
-        { name: "鳥取", coords: "344,554,432,601" },
-        { name: "島根", coords: "344,604,432,651" },
-        { name: "岡山", coords: "344,654,432,701" },
-        { name: "広島", coords: "344,704,432,751" },
-        { name: "山口", coords: "344,754,432,801" },
-        { name: "徳島", coords: "434,804,522,851" },
-        { name: "香川", coords: "434,854,522,901" },
-        { name: "愛媛", coords: "434,904,522,951" },
-        { name: "高知", coords: "434,954,522,1001" },
-        { name: "福岡", coords: "254,804,342,851" },
-        { name: "佐賀", coords: "254,854,342,901" },
-        { name: "長崎", coords: "254,904,342,951" },
-        { name: "熊本", coords: "254,954,342,1001" },
-        { name: "大分", coords: "254,1004,342,1051" },
-        { name: "宮崎", coords: "254,1054,342,1101" },
-        { name: "鹿児島", coords: "254,1104,342,1151" },
-        { name: "沖縄", coords: "76,1054,166,1101" } // Bottom left blue block
+        // Format: [x1, y1, x2, y2, "Prefecture Name", "region-class"]
+        // Regions classes are optional, for styling.
+        [721,114,948,252, "北海道", "region-hokkaido"], // Top right green block
+        [721,291,811,338, "青森", "region-tohoku"],
+        [813,291,902,338, "岩手", "region-tohoku"],
+        [721,341,811,388, "秋田", "region-tohoku"],
+        [813,341,902,388, "山形", "region-tohoku"],
+        [813,391,902,437, "宮城", "region-tohoku"],
+        [813,440,902,487, "福島", "region-tohoku"],
+
+        [614,354,704,401, "新潟", "region-chubu"],
+        [614,404,704,451, "富山", "region-chubu"],
+        [524,404,612,451, "石川", "region-chubu"],
+        [524,454,612,501, "福井", "region-chubu"],
+        [721,490,811,537, "茨城", "region-kanto"],
+        [721,540,811,587, "栃木", "region-kanto"],
+        [721,590,811,637, "群馬", "region-kanto"],
+        [721,640,811,687, "埼玉", "region-kanto"],
+        [813,590,902,637, "千葉", "region-kanto"],
+        [813,640,902,687, "東京", "region-kanto"],
+        [813,690,902,737, "神奈川", "region-kanto"],
+        [721,690,811,737, "山梨", "region-chubu"],
+        [721,740,811,787, "長野", "region-chubu"],
+        [614,454,704,501, "岐阜", "region-chubu"],
+        [721,790,811,837, "静岡", "region-chubu"],
+        [614,504,704,551, "愛知", "region-chubu"],
+        [614,554,704,601, "三重", "region-kansai"], // Mie is often grouped with Kansai
+        [524,504,612,551, "滋賀", "region-kansai"],
+        [524,554,612,601, "京都", "region-kansai"],
+        [524,604,612,651, "大阪", "region-kansai"],
+        [434,554,522,601, "兵庫", "region-kansai"],
+        [524,654,612,701, "奈良", "region-kansai"],
+        [524,704,612,751, "和歌山", "region-kansai"],
+
+        [344,554,432,601, "鳥取", "region-chugoku"],
+        [344,604,432,651, "島根", "region-chugoku"],
+        [344,654,432,701, "岡山", "region-chugoku"],
+        [344,704,432,751, "広島", "region-chugoku"],
+        [344,754,432,801, "山口", "region-chugoku"],
+
+        [434,804,522,851, "徳島", "region-shikoku"],
+        [434,854,522,901, "香川", "region-shikoku"],
+        [434,904,522,951, "愛媛", "region-shikoku"],
+        [434,954,522,1001, "高知", "region-shikoku"],
+
+        [254,804,342,851, "福岡", "region-kyushu"],
+        [254,854,342,901, "佐賀", "region-kyushu"],
+        [254,904,342,951, "長崎", "region-kyushu"],
+        [254,954,342,1001, "熊本", "region-kyushu"],
+        [254,1004,342,1051, "大分", "region-kyushu"],
+        [254,1054,342,1101, "宮崎", "region-kyushu"],
+        [254,1104,342,1151, "鹿児島", "region-kyushu"],
+
+        [76,1054,166,1101, "沖縄", "region-okinawa"] // Bottom left blue block
     ];
 
 
-    function generateImageMapAreas() {
+    function createAbstractMapRegions() {
         prefectureCoords.forEach(pref => {
-            if (prefectureData[pref.name]) { // Only add if data exists for this prefecture
-                const area = document.createElement('area');
-                area.shape = "rect"; // All shapes are rectangles for this map
-                area.coords = pref.coords;
-                area.alt = pref.name;
-                area.href = "#"; // Prevent default link behavior
-                area.dataset.prefecture = pref.name; // Custom data attribute to store prefecture name
-                japanPrefecturesMap.appendChild(area);
+            const [x1, y1, x2, y2, name, regionClass] = pref;
+
+            // Scale coordinates to fit the DISPLAY_MAP_WIDTH
+            const scaledX1 = x1 * SCALE_FACTOR;
+            const scaledY1 = y1 * SCALE_FACTOR;
+            const scaledX2 = x2 * SCALE_FACTOR;
+            const scaledY2 = y2 * SCALE_FACTOR;
+
+            const width = scaledX2 - scaledX1;
+            const height = scaledY2 - scaledY1;
+
+            const prefDiv = document.createElement('div');
+            prefDiv.classList.add('prefecture-block');
+            if (regionClass) {
+                prefDiv.classList.add(regionClass); // Add region-specific color class
             }
+            prefDiv.style.left = `${scaledX1}px`;
+            prefDiv.style.top = `${scaledY1}px`;
+            prefDiv.style.width = `${width}px`;
+            prefDiv.style.height = `${height}px`;
+            prefDiv.dataset.prefecture = name; // Store prefecture name for click handling
+            prefDiv.textContent = name.replace('県', '').replace('府', '').replace('都', ''); // Display short name (e.g., "東京" instead of "東京都")
+
+            // Add click listener directly to the div
+            prefDiv.addEventListener('click', (event) => {
+                const prefectureName = event.target.dataset.prefecture;
+                if (prefectureName && prefectureData[prefectureName]) {
+                    popupPrefectureName.textContent = prefectureName;
+                    renderChecklist(prefectureName);
+                    prefecturePopup.style.display = 'flex';
+                    prefecturePopup.classList.add('show');
+                }
+            });
+
+            abstractMapContainer.appendChild(prefDiv);
         });
     }
 
-    // Event listener for clicks on the image map
-    japanPrefecturesMap.addEventListener('click', (event) => {
-        const target = event.target;
-        if (target.tagName === 'AREA' && target.dataset.prefecture) {
-            event.preventDefault(); // Prevent default link behavior
-            const prefectureName = target.dataset.prefecture;
-            popupPrefectureName.textContent = prefectureName;
-            renderChecklist(prefectureName);
-            prefecturePopup.style.display = 'flex'; // Show the popup
-            prefecturePopup.classList.add('show'); // Add class for animation
-        }
-    });
-
-    // Close popup when clicking the close button
-    popupCloseButton.addEventListener('click', () => {
+    // Function to close any open popup
+    function closePopups() {
         prefecturePopup.classList.remove('show');
+        instagramPopup.classList.remove('show');
         setTimeout(() => { // Delay hiding to allow animation to complete
             prefecturePopup.style.display = 'none';
+            instagramPopup.style.display = 'none';
         }, 300);
-    });
+    }
+
+    // Close popup when clicking the close button
+    popupCloseButton.addEventListener('click', closePopups);
+    instagramCloseButton.addEventListener('click', closePopups);
 
     // Close popup when clicking outside the popup content
     window.addEventListener('click', (event) => {
-        if (event.target === prefecturePopup) {
-            prefecturePopup.classList.remove('show');
-            setTimeout(() => {
-                prefecturePopup.style.display = 'none';
-            }, 300);
-        }
-        if (event.target === instagramPopup) {
-            instagramPopup.classList.remove('show');
-            setTimeout(() => {
-                instagramPopup.style.display = 'none';
-            }, 300);
+        if (event.target === prefecturePopup || event.target === instagramPopup) {
+            closePopups();
         }
     });
 
@@ -377,30 +399,20 @@ document.addEventListener('DOMContentLoaded', () => {
         instagramPopup.classList.add('show');
     });
 
-    instagramCloseButton.addEventListener('click', () => {
-        instagramPopup.classList.remove('show');
-        setTimeout(() => {
-            instagramPopup.style.display = 'none';
-        }, 300);
-    });
-
     saveInstagramIdButton.addEventListener('click', () => {
         currentInstagramId = instagramIdInput.value.trim();
         displayedInstagramId.textContent = currentInstagramId || 'N/A';
-        instagramPopup.classList.remove('show');
-        setTimeout(() => {
-            instagramPopup.style.display = 'none';
-        }, 300);
+        localStorage.setItem('instagramId', currentInstagramId); // Save to localStorage
+        closePopups();
     });
 
     // Save as PNG functionality
     savePngButton.addEventListener('click', () => {
-        // Temporarily hide popups and the button itself before screenshot
-        prefecturePopup.style.display = 'none';
-        instagramPopup.style.display = 'none';
-        savePngButton.classList.add('hide-on-screenshot'); // Use a class for hiding
+        closePopups(); // Ensure popups are closed before screenshot
+        savePngButton.classList.add('hide-on-screenshot'); // Temporarily hide the button
 
-        html2canvas(document.body, {
+        // The target for html2canvas is the main container to capture everything relevant.
+        html2canvas(document.querySelector('.container'), {
             allowTaint: true,
             useCORS: true,
             scale: 2 // Increase resolution for better quality
@@ -408,30 +420,25 @@ document.addEventListener('DOMContentLoaded', () => {
             const link = document.createElement('a');
             link.download = 'japan_checklist.png';
             link.href = canvas.toDataURL('image/png');
-            document.body.appendChild(link); // Append to body to make it clickable
+            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link); // Clean up
+            document.body.removeChild(link);
 
             // Restore hidden elements after screenshot
             savePngButton.classList.remove('hide-on-screenshot');
-            // If popups were open, you might want to restore their state here
         });
     });
 
-    // Initial calculations and rendering
+    // Initializations
     calculateTotalItems();
-    updateCounter();
-    generateImageMapAreas(); // Call this to populate the <map> with <area> tags
+    updateCounter(); // Initial update after loading from localStorage
+    createAbstractMapRegions(); // Dynamically create the map div elements
 
     // Load saved Instagram ID from localStorage if available
     if (localStorage.getItem('instagramId')) {
         currentInstagramId = localStorage.getItem('instagramId');
         displayedInstagramId.textContent = currentInstagramId;
     }
-    // Save Instagram ID to localStorage on change
-    instagramIdInput.addEventListener('change', () => {
-        localStorage.setItem('instagramId', instagramIdInput.value.trim());
-    });
 
     // Load checked items from localStorage if available
     if (localStorage.getItem('prefectureData')) {
@@ -447,13 +454,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
         }
+        updateCounter(); // Update counter based on loaded data
     }
-
-    // Save checked items to localStorage whenever a checkbox changes
-    checklistItemsDiv.addEventListener('change', (event) => {
-        if (event.target.type === 'checkbox') {
-            localStorage.setItem('prefectureData', JSON.stringify(prefectureData));
-        }
-    });
-    updateCounter(); // Initial update after loading from localStorage
 });
