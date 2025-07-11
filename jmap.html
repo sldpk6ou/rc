@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本地図</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="counter-box">
+            Selected Items: <span id="selectedItemsCount">0</span> / <span id="totalItemsCount">0</span>
+        </div>
+
+        <div class="map-container">
+            <img src="image_9a3db6.png" alt="Map of Japan Prefectures" usemap="#japanPrefecturesMap" id="japanMap">
+            <map name="japanPrefecturesMap" id="japanPrefecturesMap">
+                </map>
+        </div>
+
+        <div id="prefecturePopup" class="popup">
+            <div class="popup-content">
+                <span class="close-button">&times;</span>
+                <h3 id="popupPrefectureName"></h3>
+                <div id="checklistItems">
+                    </div>
+            </div>
+        </div>
+
+        <div class="instagram-display">
+            Instagram: <span id="displayedInstagramId">N/A</span>
+        </div>
+
+        <div id="instagramPopup" class="popup instagram-popup">
+            <div class="popup-content">
+                <span class="close-button">&times;</span>
+                <h4>Enter your Instagram ID:</h4>
+                <input type="text" id="instagramIdInput" placeholder="@yourinstagram">
+                <button id="saveInstagramId">Save</button>
+            </div>
+        </div>
+
+        <button id="savePngButton">Download Result as PNG</button>
+    </div>
+
+    <script src="script.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</body>
+</html>
