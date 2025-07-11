@@ -13,24 +13,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const displayedInstagramId = document.getElementById('displayedInstagramId');
     const savePngButton = document.getElementById('savePngButton');
 
-
     // Reference image dimensions (from image_9a3db6.png)
-    // IMPORTANT: These are the *original* dimensions of your image.
-    const REFERENCE_IMAGE_ORIGINAL_WIDTH = 950;
-    const REFERENCE_IMAGE_ORIGINAL_HEIGHT = 1250;
+    // These are CRUCIAL for correctly scaling and positioning the abstract divs.
+    const REFERENCE_IMAGE_WIDTH = 950;
+    const REFERENCE_IMAGE_HEIGHT = 1250;
 
-    // The dimensions of the abstract map container *after* conceptual rotation.
-    // The original height becomes the new "conceptual width" on the web page.
-    // The original width becomes the new "conceptual height" on the web page.
-    const CONCEPTUAL_MAP_WIDTH = REFERENCE_IMAGE_ORIGINAL_HEIGHT; // 1250
-    const CONCEPTUAL_MAP_HEIGHT = REFERENCE_IMAGE_ORIGINAL_WIDTH; // 950
-
-    // The desired display width for our *rotated* abstract map container (the "shorter" side)
-    // This value should match the 'height' in .abstract-map-container in style.css
-    const DISPLAY_MAP_HEIGHT = 760; // This is now the base for scaling.
-
-    // Calculate SCALE_FACTOR based on the conceptual height (original width)
-    const SCALE_FACTOR = DISPLAY_MAP_HEIGHT / CONCEPTUAL_MAP_HEIGHT;
+    // The desired display width for our abstract map container
+    // This value should match the 'width' in .abstract-map-container in style.css
+    const DISPLAY_MAP_WIDTH = 760;
+    const SCALE_FACTOR = DISPLAY_MAP_WIDTH / REFERENCE_IMAGE_WIDTH;
 
     // Data structure for prefecture items (same as before)
     const prefectureData = {
@@ -284,10 +275,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Coordinates for each prefecture based on the provided image (pixel values)
     // These are from your `image_9a3db6.png` reference.
     // Added a 6th element to optionally specify a region class for styling.
-     const prefectureCoords = [
+    const prefectureCoords = [
         // Format: [x1, y1, x2, y2, "Prefecture Name", "region-class"]
-        // These coords are from the provided image, manually determined for each block.
-        // They are relative to the *original* image orientation.
         [721,114,948,252, "北海道", "region-hokkaido"], // Top right green block
         [721,291,811,338, "青森", "region-tohoku"],
         [813,291,902,338, "岩手", "region-tohoku"],
@@ -343,26 +332,15 @@ document.addEventListener('DOMContentLoaded', () => {
     ];
 
     // Function to dynamically create and position the abstract prefecture blocks
-    
-    // Function to dynamically create and position the abstract prefecture blocks
     function createAbstractMapRegions() {
         prefectureCoords.forEach(pref => {
-            const [x1_orig, y1_orig, x2_orig, y2_orig, name, regionClass] = pref;
+            const [x1, y1, x2, y2, name, regionClass] = pref;
 
-            // Apply rotation to coordinates *before* scaling
-            // New x becomes old y. New y becomes (original_width - old x).
-            // This is a 90-degree clockwise rotation transformation.
-            const rotatedX1 = y1_orig;
-            const rotatedY1 = REFERENCE_IMAGE_ORIGINAL_WIDTH - x2_orig; // Use x2_orig for top-left after rotation
-
-            const rotatedX2 = y2_orig;
-            const rotatedY2 = REFERENCE_IMAGE_ORIGINAL_WIDTH - x1_orig; // Use x1_orig for bottom-right after rotation
-
-            // Now, scale these *rotated* coordinates to fit the DISPLAY_MAP_HEIGHT
-            const scaledX1 = rotatedX1 * SCALE_FACTOR;
-            const scaledY1 = rotatedY1 * SCALE_FACTOR;
-            const scaledX2 = rotatedX2 * SCALE_FACTOR;
-            const scaledY2 = rotatedY2 * SCALE_FACTOR;
+            // Scale coordinates to fit the DISPLAY_MAP_WIDTH of our abstract container
+            const scaledX1 = x1 * SCALE_FACTOR;
+            const scaledY1 = y1 * SCALE_FACTOR;
+            const scaledX2 = x2 * SCALE_FACTOR;
+            const scaledY2 = y2 * SCALE_FACTOR;
 
             const width = scaledX2 - scaledX1;
             const height = scaledY2 - scaledY1;
@@ -372,14 +350,15 @@ document.addEventListener('DOMContentLoaded', () => {
             if (regionClass) {
                 prefDiv.classList.add(regionClass); // Add region-specific color class
             }
-            // Apply scaled and rotated coordinates to CSS properties
             prefDiv.style.left = `${scaledX1}px`;
             prefDiv.style.top = `${scaledY1}px`;
             prefDiv.style.width = `${width}px`;
             prefDiv.style.height = `${height}px`;
-            prefDiv.dataset.prefecture = name;
+            prefDiv.dataset.prefecture = name; // Store prefecture name for click handling
+            // Display a shorter name (e.g., "東京" instead of "東京都") inside the block
             prefDiv.textContent = name.replace('県', '').replace('府', '').replace('都', '');
 
+            // Add click listener directly to the div
             prefDiv.addEventListener('click', (event) => {
                 const prefectureName = event.target.dataset.prefecture;
                 if (prefectureName && prefectureData[prefectureName]) {
@@ -393,7 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
             abstractMapContainer.appendChild(prefDiv);
         });
     }
-
 
     // Function to close any open popup
     function closePopups() {
