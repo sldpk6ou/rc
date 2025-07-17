@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', async () => {
-    const abstractMapContainer = document.getElementById('abstractMapContainer');
-    const prefecturePopup = document.getElementById('prefecturePopup');
-    const popupCloseButton = prefecturePopup.querySelector('.close-button');
-    const popupPrefectureName = document.getElementById('popupPrefectureName');
+    const abstractMapContainer = document.getElementById('abstract-map-container');
+    const prefecturePopup = document.getElementById('checklist-popup');
+    const popupCloseButton = document.getElementById('close-popup-btn');
+    const popupPrefectureName = document.getElementById('popup-prefecture-name');
     const checklistItemsDiv = document.getElementById('checklistItems');
     const selectedItemsCountSpan = document.getElementById('selectedItemsCount');
     const totalItemsCountSpan = document.getElementById('totalItemsCount');
@@ -14,7 +14,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     const savePngButton = document.getElementById('savePngButton');
     const checkedItemsListDiv = document.getElementById('checkedItemsList');
     const noItemsMessage = checkedItemsListDiv.querySelector('.no-items-message');
+	const checkedItemsPanel = document.getElementById('checked-items-panel'); // <--- ASSIGNMENT HAPPENS HERE!
 
+
+	let checklistPopup; // This will hold the reference to the main popup overlay
+	let popupContent; // This will hold the reference to the content area of the popup
+
+
+	checklistPopup = document.getElementById('checklist-popup');
+	popupContent = document.getElementById('popup-content');
+	
     // Reference image dimensions based on your provided coordinates' max values
     // Assuming the source image for these coordinates is landscape.
     const MAP_SOURCE_WIDTH = 1448; // Max X coordinate value from provided data
@@ -27,6 +36,27 @@ document.addEventListener('DOMContentLoaded', async () => {
     // API Endpoint Definition
     const API_URL = 'prefectureData.js'; // <--- !!! IMPORTANT: REPLACE THIS WITH YOUR ACTUAL API URL !!!
 
+	// --- Add console logs/errors for debugging if elements are still null ---
+    if (!abstractMapContainer) console.error("Error: 'abstract-map-container' not found.");
+    if (!checklistPopup) console.error("Error: 'checklist-popup' not found.");
+    if (!popupPrefectureName) console.error("Error: 'popup-prefecture-name' not found. Please add <h2 id='popup-prefecture-name'></h2> to your HTML popup structure.");
+    if (!popupContent) console.error("Error: 'popup-content' not found.");
+    if (!popupCloseButton) console.error("Error: 'close-popup-btn' not found.");
+	if (popupCloseButton) {
+        // IMPORTANT: Ensure you're calling the function with the correct name: closeChecklistPopup or closePopups
+        popupCloseButton.addEventListener('click', closeChecklistPopup); // Or closePopups if that's its name
+    } else {
+        console.error("ERROR: Close button 'close-popup-btn' not found!");
+    }
+	
+	if (checklistPopup) {
+        checklistPopup.addEventListener('click', (event) => {
+            if (event.target === checklistPopup) {
+                closeChecklistPopup();
+            }
+        });
+    }
+	
     let prefectureData = {};
     let totalCheckableItems = 0;
     let currentlyCheckedItems = 0;
@@ -227,12 +257,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
             prefDiv.addEventListener('click', (event) => {
                 const prefectureName = event.target.dataset.prefecture;
-                if (prefectureName && prefectureData[prefectureName]) {
-                    popupPrefectureName.textContent = prefectureName;
-                    renderChecklist(prefectureName);
-                    prefecturePopup.style.display = 'flex';
-                    prefecturePopup.classList.add('show');
-                }
+				if (prefectureName && prefectureData[prefectureName]) {
+					popupPrefectureName.textContent = prefectureName; // This should now work
+					// It looks like you're using 'prefecturePopup' in your current code.
+					// If 'prefecturePopup' is meant to be the same as 'checklistPopup',
+					// make sure you use 'checklistPopup' consistently, or define 'prefecturePopup'
+					// at the top like the others.
+					checklistPopup.style.display = 'flex'; // Use checklistPopup
+					checklistPopup.classList.add('show'); // Use checklistPopup for class handling too
+				}
             });
 			
 			// NEW: Create and append the badge
@@ -243,6 +276,97 @@ document.addEventListener('DOMContentLoaded', async () => {
             abstractMapContainer.appendChild(prefDiv);
         });
     }
+
+	function attachPrefectureClickHandlers() {
+		const prefectureBlocks = abstractMapContainer.querySelectorAll('.prefecture-block');
+		prefectureBlocks.forEach(block => {
+			block.addEventListener('click', () => {
+				const prefectureName = block.dataset.prefecture;
+				if (prefectureName) {
+					// This is likely the problematic section
+					// The 'popupTitle' variable here needs to be correctly referenced.
+					// It seems you're trying to access it directly within this anonymous function
+					// without it being in scope or being re-fetched.
+					showChecklistPopup(prefectureName); // This function should handle setting the title
+				}
+			});
+		});
+	}
+
+
+
+	
+	
+	function showChecklistPopup(prefectureName) {
+		const popup = document.getElementById('checklist-popup');
+		const popupContent = document.getElementById('popup-content');
+		const popupTitle = document.getElementById('popup-prefecture-name');
+
+		if (!popupTitle || !popupContent || !checklistPopup) {
+			console.error("Error: One or more popup elements not found. Check your HTML IDs.");
+			console.log("popupTitle:", popupTitle, "popupContent:", popupContent, "checklistPopup:", checklistPopup);
+			return; // Exit the function if elements aren't found
+		}
+
+		popupTitle.textContent = prefectureName; 
+		popupContent.innerHTML = ''; // Clear previous content
+
+		if (checklistPopup) { // Good practice to check if it was found
+			checklistPopup.classList.add('active'); // Or use your 'show' class
+			document.body.style.overflow = 'hidden';
+		} else {
+			console.error("checklistPopup element not found in showChecklistPopup.");
+		}
+		const items = prefectureData[prefectureName] || [];
+
+		// Render checklist items in the popup
+		const checklistDiv = document.createElement('div');
+		checklistDiv.classList.add('checklist-items'); // Add a class for styling
+
+		if (items.length === 0) {
+			checklistDiv.innerHTML = '<p>No items found for this prefecture.</p>';
+		} else {
+			items.forEach(item => {
+				const itemDiv = document.createElement('div');
+				itemDiv.classList.add('checklist-item');
+
+				const checkbox = document.createElement('input');
+				checkbox.type = 'checkbox';
+				checkbox.id = `item-${prefectureName}-${item.name.replace(/\s/g, '-')}`;
+				checkbox.checked = item.checked;
+				checkbox.addEventListener('change', () => {
+					alert('a');
+					item.checked = checkbox.checked;
+					updatePrefectureBlockVisual(prefectureName);
+					alert('b');
+					savePrefectureData();
+					alert('c');
+					updateCheckedList(); // Update the main checked list
+					alert('d');
+					updatePrefectureBadge(prefectureName); // Update the badge
+					alert('e');
+				});
+
+				const label = document.createElement('label');
+				label.htmlFor = checkbox.id;
+				label.textContent = item.name;
+
+				itemDiv.appendChild(checkbox);
+				itemDiv.appendChild(label);
+				checklistDiv.appendChild(itemDiv);
+			});
+		}
+		popupContent.appendChild(checklistDiv);
+		// Display the popup
+		/*
+		popup.style.display = 'block'; // Make sure the popup element is set to 'block' or 'flex'
+		popup.style.opacity = '1';
+		popup.style.transform = 'scale(1)';
+		*/
+		checklistPopup.classList.add('active');
+		document.body.style.overflow = 'hidden';
+	}
+
 
     function renderCheckedItemsList() {
         checkedItemsListDiv.innerHTML = '';
@@ -265,8 +389,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 });
             }
         }
-
-        const sortedRegionNames = Object.keys(checkedItemsByRegion).sort();
+const sortedRegionNames = Object.keys(checkedItemsByRegion).sort();
 
         if (sortedRegionNames.length === 0) {
             checkedItemsListDiv.appendChild(noItemsMessage);
@@ -292,17 +415,105 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
 
-    function closePopups() {
-        prefecturePopup.classList.remove('show');
-        instagramPopup.classList.remove('show');
-        setTimeout(() => {
-            prefecturePopup.style.display = 'none';
-            instagramPopup.style.display = 'none';
-        }, 300);
-    }
+	function closeChecklistPopup() { // Or function closePopups()
+		if (checklistPopup) { // Ensure checklistPopup is defined and not null
+			checklistPopup.classList.remove('active'); // Or 'show'
+			document.body.style.overflow = ''; // Restore scroll
+			
+			const currentPrefectureName = popupPrefectureName ? popupPrefectureName.textContent : null;
+			// If we successfully got the prefecture name, update its badge
+			console.log(currentPrefectureName);
+			if (currentPrefectureName) {
+				updatePrefectureBadge(currentPrefectureName);
+				console.log(`Updated badge for: ${currentPrefectureName}`); // For debugging
+			} else {
+				console.warn("Could not determine current prefecture name to update badge on dialog close.");
+			}
+			updateCheckedList();
 
-    popupCloseButton.addEventListener('click', closePopups);
+		} else {
+			console.error("Cannot close popup: 'checklistPopup' is null in closeChecklistPopup.");
+		}
+	}
+	
+	function closePopups() {
+		// Check if checklistPopup (your main popup overlay element) is actually found
+		if (checklistPopup) {
+			// Remove the 'active' class (or 'show' class, depending on your CSS)
+			// to hide the popup and trigger any CSS transitions.
+			checklistPopup.classList.remove('active');
+
+			// Restore the main page's scrollability.
+			document.body.style.overflow = '';
+		} else {
+			// Log an error if the popup element wasn't found, which can help debugging.
+			console.error("Error: 'checklistPopup' element is null in closeChecklistPopup function. Check your HTML ID 'checklist-popup'.");
+		}
+	}
+
+	
+	function savePrefectureData() {
+		// Implement your logic to save prefecture data (e.g., to localStorage)
+		// Example:
+		if (typeof prefectureData !== 'undefined') { // Check if prefectureData exists
+			localStorage.setItem('prefectureData', JSON.stringify(prefectureData));
+			console.log("Prefecture data saved!");
+		} else {
+			console.warn("prefectureData is not defined, cannot save.");
+		}
+	}
+	
     instagramCloseButton.addEventListener('click', closePopups);
+
+	// This entire block must be in your script2.js
+	function updateCheckedList() {
+		if (!checkedItemsPanel) {
+			console.error("Error: 'checkedItemsPanel' element not found. Check your HTML ID or variable assignment.");
+			return;
+		}
+
+		checkedItemsPanel.innerHTML = ''; // Clear previous content
+
+		// Add a heading for the list
+		const listHeading = document.createElement('h2');
+		listHeading.textContent = 'Your Checked Items';
+		checkedItemsPanel.appendChild(listHeading);
+
+
+		const allCheckedItems = []; // To store all checked items for the "no items" check
+
+		for (const prefectureName in prefectureData) {
+			if (prefectureData.hasOwnProperty(prefectureName)) {
+				const items = prefectureData[prefectureName];
+				const checkedInPrefecture = items.filter(item => item.checked);
+
+				if (checkedInPrefecture.length > 0) {
+					const prefectureHeader = document.createElement('h3');
+					prefectureHeader.textContent = prefectureName;
+					checkedItemsPanel.appendChild(prefectureHeader);
+
+					const ul = document.createElement('ul');
+					checkedInPrefecture.forEach(item => {
+						const li = document.createElement('li');
+						li.textContent = item.name;
+						ul.appendChild(li);
+					});
+					checkedItemsPanel.appendChild(ul);
+
+					allCheckedItems.push(...checkedInPrefecture); // Add to overall list
+				}
+			}
+		}
+
+		if (allCheckedItems.length === 0) {
+			const noItemsMessage = document.createElement('p');
+			noItemsMessage.textContent = 'No items checked yet.';
+			checkedItemsPanel.appendChild(noItemsMessage);
+		}
+	}
+
+
+
 
     window.addEventListener('click', (event) => {
         if (event.target === prefecturePopup || event.target === instagramPopup) {
@@ -403,7 +614,9 @@ document.addEventListener('DOMContentLoaded', async () => {
         updateCounter();
     }
 
-    createAbstractMapRegions();
+    createAbstractMapRegions(); // This function should create the prefecture blocks
+    attachPrefectureClickHandlers(); // Make sure this is called AFTER blocks are created
+
 
     for (const prefName in prefectureData) {
         updatePrefectureBlockVisual(prefName);
