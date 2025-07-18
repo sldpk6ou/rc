@@ -11,7 +11,7 @@ body {
 }
 
 .main-wrapper {
-    display: flex;
+    /* display: flex; */
     flex-direction: column; /* Default to column for mobile */
     align-items: center;
     width: 100%;
@@ -60,8 +60,8 @@ body {
 }
 
 @media (max-width: 767px) {
-    .checked-items-panel {
-        margin-top: 0; /* Handled by main-wrapper gap */
+.checked-items-panel {
+    margin-top: 0; /* Handled by main-wrapper gap */
     }
 }
 
@@ -162,19 +162,29 @@ body {
 
 .abstract-map-container {
     position: relative;
-    /* Map dimensions based on new conceptual size (1448x819) scaled to target height 800px */
-    height: 800px; /* NEW: Target height for the map */
-    width: calc(800px * (1448 / 1600)); /* NEW: Width proportional to its new height and aspect ratio */
-    margin: 20px auto;
-    border: 1px solid #ddd;
-    background-color: #e0f2f7;
-    overflow: hidden;
+    /* Your existing styles for the map container */
+    width: calc(800px * (1448 / 1600)); /* Keep map responsive horizontally */
+    max-width: 800px; /* Example: Limit overall map width for larger screens */
+    margin: 20px auto; /* Center the map if it has a max-width */
+    border: 1px solid #ccc; /* Optional: A border to see its bounds */
+    border-radius: 8px; /* Optional: Rounded corners */
+    overflow: hidden; /* Important if content might exceed bounds */
+	height: 500px; /* Start with a fixed pixel value and adjust */
+	
+	background-color: #e0f2f7;
+	background-image: linear-gradient(to right, #f2fafd 1px, transparent 1px),
+                      linear-gradient(to bottom, #f2fafd 1px, transparent 1px);
     box-shadow: inset 0 0 8px rgba(0,0,0,0.08);
     border-radius: 8px;
-    background-image: linear-gradient(to right, #f2fafd 1px, transparent 1px),
-                      linear-gradient(to bottom, #f2fafd 1px, transparent 1px);
     background-size: 20px 20px;
-    /* No transform: rotate(90deg); - map is displayed in landscape */
+
+	/*
+    height: 800px; 
+    width: calc(800px * (1448 / 1600)); 
+    margin: 20px auto;
+    border: 1px solid #ddd;
+    overflow: hidden;
+	*/
 }
 
 @media (min-width: 768px) {
@@ -240,6 +250,94 @@ body {
         right: -6px;
     }
 }
+
+/* Styles for the popup overlay */
+#checklist-popup {
+    display: none; /* Hidden by default - JavaScript will change this to 'flex' */
+    position: fixed; /* Positions relative to the viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    z-index: 1000; /* Ensure it's on top of almost everything else */
+
+    /* Flexbox for centering the inner content */
+    display: flex;
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+
+    /* Smooth transition for showing/hiding (optional, but nice) */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* When the popup is active (shown by JS) */
+#checklist-popup.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+/* Styles for the actual popup content box */
+#checklist-popup .popup-content {
+    background-color: white;
+    padding: 25px;
+    border-radius: 8px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+    max-width: 500px; /* Limit popup width */
+    max-height: 80vh; /* Limit popup height to prevent overflow on small screens */
+    overflow-y: auto; /* Enable scrolling if content exceeds max-height */
+    position: relative; /* Needed for positioning close button, if it's absolute */
+    transform: scale(0.9); /* Start slightly smaller for transition effect */
+    transition: transform 0.3s ease; /* Smooth scale transition */
+}
+
+/* When popup is active, scale it up */
+#checklist-popup.active .popup-content {
+    transform: scale(1);
+}
+
+
+/* Styles for the close button within the popup (optional, adjust as needed) */
+#close-popup-btn {
+    position: absolute; /* Position it relative to its parent (the popup) */
+    top: 10px;          /* Adjust as needed for vertical position */
+    right: 10px;        /* Adjust as needed for horizontal position */
+    background-color: #ff4d4d; /* Red background */
+    color: white;       /* White 'x' */
+    border: none;       /* No border */
+    border-radius: 4px; /* Slightly rounded corners for the square */
+    width: 30px;        /* Small square width */
+    height: 30px;       /* Small square height */
+    font-size: 18px;    /* Size of the 'x' */
+    font-weight: bold;  /* Make the 'x' bold */
+    cursor: pointer;    /* Indicate it's clickable */
+    display: flex;      /* Use flexbox to center the 'x' */
+    justify-content: center; /* Center horizontally */
+    align-items: center;     /* Center vertically */
+    padding: 0;         /* Remove default padding */
+    line-height: 1;     /* Ensure 'x' is vertically centered */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Optional: subtle shadow */
+    transition: background-color 0.2s ease; /* Smooth hover effect */
+}
+
+#close-popup-btn:hover {
+    background-color: #e60000; /* Darker red on hover */
+}
+
+/* Basic styling for the checklist items in the popup */
+.checklist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.checklist-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2); /* Make checkboxes slightly larger */
+}
+
 .prefecture-block:hover {
     background-color: rgba(100, 180, 255, 0.6);
     border-color: rgba(0, 0, 0, 0.3);
@@ -251,6 +349,24 @@ body {
     border-color: rgba(0, 0, 0, 0.4);
     color: #fff;
 }
+
+/* style.css */
+
+#grouping-toggle-btn {
+    padding: 8px 15px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: background-color 0.2s ease;
+}
+
+#grouping-toggle-btn:hover {
+    background-color: #0056b3;
+}
+
 
 /* Region-specific colors for the abstract blocks (unchanged) */
 .region-hokkaido { background-color: rgba(144, 238, 144, 0.5); }
@@ -276,7 +392,10 @@ body {
 
 /* Popups (unchanged) */
 .popup { /* ... */ }
-.popup-content { /* ... */ }
+.popup-content { 
+	min-width: 300px;
+	min-height: 200px;
+}
 .close-button { /* ... */ }
 #savePngButton { /* ... */ }
 #savePngButton:hover { /* ... */ }
@@ -296,7 +415,7 @@ body {
         padding: 0;
     }
 
-    .checked-items-panel {
+    #checked-items-panel {
         width: 300px;
         margin-right: 20px;
         max-height: 800px; /* Can be adjusted if 500px is too small for 800px map */
