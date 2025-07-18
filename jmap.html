@@ -7,8 +7,11 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="main-wrapper"> <div class="checked-items-panel">
-            <h2>Checked Items</h2>
+    <div class="main-wrapper"> 
+		<div id="checked-items-panel" id="checked-items-panel">
+			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <h2>Checked Items</h2></div>
+			<button id="grouping-toggle-btn">地域でグループ化</button> </div>
             <div id="checkedItemsList" class="checked-items-scrollable">
                 <p class="no-items-message">No items checked yet.</p>
             </div>
@@ -19,17 +22,16 @@
                 Selected Items: <span id="selectedItemsCount">0</span> / <span id="totalItemsCount">0</span>
             </div>
 
-            <div class="abstract-map-container" id="abstractMapContainer">
+            <div class="abstract-map-container" id="abstract-map-container">
                 </div>
 
-            <div id="prefecturePopup" class="popup">
-                <div class="popup-content">
-                    <span class="close-button">&times;</span>
-                    <h3 id="popupPrefectureName"></h3>
-                    <div id="checklistItems">
-                        </div>
-                </div>
-            </div>
+            <div id="checklist-popup" class="popup-overlay">
+				<div class="popup-content">
+					<h2 id="popup-prefecture-name"></h2> 
+					<div id="popup-content" class="popup-scroll-content"></div>
+					<button id="close-popup-btn">Close</button>
+				</div>
+			</div>
 
             <div class="instagram-display hide-on-screenshot">
                 Instagram: <span id="displayedInstagramId">N/A</span>
