@@ -5,64 +5,39 @@ body {
     align-items: flex-start;
     min-height: 100vh;
     background-color: #f0f2f5;
-    margin: 0;
+    margin: 0; 
     padding: 20px;
     box-sizing: border-box;
 }
-
-.main-wrapper {
-    /* display: flex; */
-    flex-direction: column; /* Default to column for mobile */
-    align-items: center;
-    width: 100%;
-    max-width: 1600px; /* Increased max-width for the entire application layout */
-    gap: 20px; /* Space between map container and checklist panel */
-}
-
-
-@media (min-width: 768px) {
-    .main-wrapper {
-        flex-direction: row; /* Side-by-side for desktop */
-        align-items: flex-start; /* Align items to the top */
-        justify-content: center;
-    }
-}
-
 .container {
     position: relative;
-    background-color: #ffffff;
-    border-radius: 12px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
-    padding: 25px;
+	display: flex;
+	flex-wrap: wrap;
+    padding: 5px;
     text-align: center;
     width: 100%;
-    max-width: 1200px; /* Max width for the app container on desktop */
+    max-width: 1200px; 
     box-sizing: border-box;
 }
 
+.main-content-wrapper {
+	display: flex; /* Use flexbox to arrange children side-by-side */
+	justify-content: center; /* Center the content if total width is less than max-width */
+	align-items: flex-start; /* Align items to the top of the container */
+	gap: 30px; /* Space between the map and the checked list */
+	max-width: 1200px; /* Limit the overall width on large screens */
+	margin: 20px auto; /* Center the wrapper horizontally and add vertical margin */
+	padding: 15px; /* Add some padding around the content */
+}
 .checked-items-panel {
+	display: flex; /* Use flexbox to arrange children side-by-side */
     background-color: #ffffff;
     border-radius: 12px;
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    width: 100%;
-    max-width: 400px;
+    max-width: 250px;
     box-sizing: border-box;
     align-self: flex-start;
-}
-
-@media (min-width: 768px) {
-    .checked-items-panel {
-        width: 300px; /* Fixed width for the panel */
-        max-height: 800px; /* Match map height (DISPLAY_MAP_TARGET_HEIGHT) */
-        overflow-y: auto; /* Make it scrollable */
-    }
-}
-
-@media (max-width: 767px) {
-.checked-items-panel {
-    margin-top: 0; /* Handled by main-wrapper gap */
-    }
 }
 
 .checked-items-panel h2 {
@@ -77,7 +52,11 @@ body {
 .checked-items-scrollable {
     max-height: 500px;
     overflow-y: auto;
-    padding-right: 10px;
+    padding-right: 20px;
+	padding-left: 20px;
+	max-width: 250px;
+	width: 30%;
+
 }
 
 .checked-items-scrollable ul {
@@ -124,6 +103,114 @@ body {
     padding: 20px;
 }
 
+.main-wrapper {
+    /* display: flex; */
+    flex-direction: column; /* Default to column for mobile */
+    align-items: center;
+    width: 100%;
+    max-width: 1600px; /* Increased max-width for the entire application layout */
+    gap: 20px; /* Space between map container and checklist panel */
+}
+
+#instagramPopup {
+    display: none; /* Hidden by default - JavaScript will change this to 'flex' */
+    position: fixed; /* Positions relative to the viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    z-index: 1000; /* Ensure it's on top of almost everything else */
+
+    /* Flexbox for centering the inner content */
+    display: flex;
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+
+    /* Smooth transition for showing/hiding (optional, but nice) */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+/* Instagram Popup Specifics */
+.instagram-popup .popup-content {
+    text-align: center;
+    max-width: 350px;
+}
+
+.instagram-popup h4 {
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+.instagram-popup input[type="text"] {
+    width: calc(100% - 20px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1em;
+}
+
+.instagram-popup button {
+    padding: 10px 20px;
+    background-color: #28a745; /* Green save button */
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 1em;
+    transition: background-color 0.2s ease;
+}
+
+.instagram-popup button:hover {
+    background-color: #218838;
+}
+
+.instagram-popup .close-button {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #aaa;
+}
+
+.instagram-popup .close-button:hover {
+    color: #333;
+}
+
+
+
+
+@media (min-width: 768px) {
+    .main-wrapper {
+        flex-direction: row; /* Side-by-side for desktop */
+        align-items: flex-start; /* Align items to the top */
+        justify-content: center;
+    }
+}
+
+@media (min-width: 768px) {
+/*
+    .checked-items-panel {
+        width: 300px; 
+        max-height: 800px; 
+        overflow-y: auto; 
+    }
+*/
+}
+
+@media (max-width: 767px) {
+/*
+.checked-items-panel {
+    margin-top: 0;  Handled by main-wrapper gap 
+    }
+*/
+}
+
 .counter-box {
     position: absolute;
     top: 20px;
@@ -163,9 +250,11 @@ body {
 .abstract-map-container {
     position: relative;
     /* Your existing styles for the map container */
-    width: calc(800px * (1448 / 1600)); /* Keep map responsive horizontally */
-    max-width: 800px; /* Example: Limit overall map width for larger screens */
-    margin: 20px auto; /* Center the map if it has a max-width */
+    /* width: calc(800px * (1448 / 1600)); /* Keep map responsive horizontally */
+    max-width: 1000px; /* Example: Limit overall map width for larger screens */
+	min-width: 768px;
+	width:70%;
+    /* margin: 20px auto; /* Center the map if it has a max-width */
     border: 1px solid #ccc; /* Optional: A border to see its bounds */
     border-radius: 8px; /* Optional: Rounded corners */
     overflow: hidden; /* Important if content might exceed bounds */
@@ -176,20 +265,12 @@ body {
                       linear-gradient(to bottom, #f2fafd 1px, transparent 1px);
     box-shadow: inset 0 0 8px rgba(0,0,0,0.08);
     border-radius: 8px;
-    background-size: 20px 20px;
-
-	/*
-    height: 800px; 
-    width: calc(800px * (1448 / 1600)); 
-    margin: 20px auto;
-    border: 1px solid #ddd;
-    overflow: hidden;
-	*/
+    /*background-size: 20px 20px;*/
 }
 
 @media (min-width: 768px) {
     .container { /* The container holding the map */
-        margin-right: 20px; /* Space between map and panel */
+        /* margin-right: 20px; /* Space between map and panel */
     }
 }
 
@@ -391,7 +472,26 @@ body {
 .region-okinawa.prefecture-checked { background-color: rgba(0, 0, 128, 0.7); }
 
 /* Popups (unchanged) */
-.popup { /* ... */ }
+.popup { 
+    display: none; /* Hidden by default - JavaScript will change this to 'flex' */
+    position: fixed; /* Positions relative to the viewport */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent black background */
+    z-index: 1000; /* Ensure it's on top of almost everything else */
+
+    /* Flexbox for centering the inner content */
+    display: flex;
+    justify-content: center; /* Horizontally center */
+    align-items: center; /* Vertically center */
+
+    /* Smooth transition for showing/hiding (optional, but nice) */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
 .popup-content { 
 	min-width: 300px;
 	min-height: 200px;
@@ -414,17 +514,16 @@ body {
         justify-content: center;
         padding: 0;
     }
-
+/*
     #checked-items-panel {
         width: 300px;
         margin-right: 20px;
-        max-height: 800px; /* Can be adjusted if 500px is too small for 800px map */
+        max-height: 800px; 
     }
-
+*/
     .container {
         width: auto;
         max-width: none;
-        padding: 25px;
     }
 
     .counter-box {
@@ -448,26 +547,48 @@ body {
     }
 }
 
-/* Tablet / Medium Screens (e.g., 768px - 1024px) */
+/* Tablet / Medium Screens (e.g., 768px - 1024px) 
 @media (min-width: 768px) and (max-width: 1024px) {
     .abstract-map-container {
-        /* Scale down the map slightly for tablets */
-        /* Use a smaller target height, recalculate width */
-        height: 600px; /* Example: Smaller target height for tablets */
-        width: calc(600px * (1448 / 819)); /* Proportional width */
+        // Scale down the map slightly for tablets 
+        // Use a smaller target height, recalculate width 
+        height: 600px; // Example: Smaller target height for tablets 
+        width: calc(600px * (1448 / 819)); // Proportional width 
     }
 
     .prefecture-block {
         font-size: 0.7em;
     }
 }
-
+*/
 /* Mobile Screens (e.g., < 768px) */
 @media (max-width: 767px) {
     body {
         padding: 10px;
     }
+    .main-content-wrapper {
+        flex-direction: column; /* Stack items vertically */
+        align-items: center; /* Center items horizontally in the column */
+        gap: 20px; /* Space between stacked map and list */
+        margin: 10px; /* Adjust margin for mobile */
+        padding: 10px; /* Adjust padding for mobile */
+    }
 
+    #abstract-map-container {
+        width: 100%; /* Map takes full width on mobile */
+        min-width: unset; /* Remove desktop min-width constraint */
+        max-width: 100%; /* Map takes full width */
+        height: auto; /* Allow map height to adjust, e.g., based on aspect ratio or content */
+        max-height: 60vh; /* Optional: limit map height to 60% of viewport height on mobile */
+        order: 1; /* Ensure map is at the top (if needed, otherwise default order is fine) */
+    }
+
+    .checked-items-panel {
+        width: 100%; /* List takes full width on mobile */
+        flex: none; /* Remove flex sizing */
+        order: 2; /* Ensure list is at the bottom */
+        margin-top: 0; /* Remove top margin if not needed due to gap */
+    }
     .main-wrapper {
         gap: 15px;
     }
@@ -475,16 +596,15 @@ body {
     .container {
         padding: 15px;
     }
-
+/*
     .abstract-map-container {
-        /* Fluid width based on viewport, height scales proportionally */
         width: 90vw;
-        height: calc(90vw * (819 / 1448)); /* Height proportional to its width and original aspect ratio */
+        height: calc(90vw * (819 / 1448)); 
         margin: 15px auto;
-        transform: none; /* No rotation or scaling here anymore */
-        transform-origin: center center; /* Reset transform-origin */
+        transform: none;
+        transform-origin: center center; 
     }
-
+*/
     .prefecture-block {
         font-size: 0.6em;
     }
