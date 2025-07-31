@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', async () => {
     const abstractMapContainer = document.getElementById('abstract-map-container');
-    const prefecturePopup = document.getElementById('checklist-popup');
+    //const prefecturePopup = document.getElementById('checklist-popup');
     const popupCloseButton = document.getElementById('close-popup-btn');
     const popupPrefectureName = document.getElementById('popup-prefecture-name');
     const checklistItemsDiv = document.getElementById('checklistItems');
@@ -12,17 +12,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     const saveInstagramIdButton = document.getElementById('saveInstagramId');
     const displayedInstagramId = document.getElementById('displayedInstagramId');
     const savePngButton = document.getElementById('savePngButton');
+	const instagramNameBtn = document.getElementById('instagramNameButton');
     const checkedItemsListDiv = document.getElementById('checkedItemsList');
-    const noItemsMessage = checkedItemsListDiv.querySelector('.no-items-message');
-	const checkedItemsPanel = document.getElementById('checked-items-panel'); // <--- ASSIGNMENT HAPPENS HERE!
-
-
-	let checklistPopup; // This will hold the reference to the main popup overlay
+    const noItemsMessage = document.getElementById('no-items-message');
+	const checkedItemsPanel = document.getElementById('checked-items-panel'); 
+	const checklistPopup = document.getElementById('checklist-popup');
+	
+	
 	let popupContent; // This will hold the reference to the content area of the popup
 
 	let groupingToggleButton; // Declare the button variable here
 
-	checklistPopup = document.getElementById('checklist-popup');
+	
 	popupContent = document.getElementById('popup-content');
 	
     // Reference image dimensions based on your provided coordinates' max values
@@ -43,15 +44,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!popupPrefectureName) console.error("Error: 'popup-prefecture-name' not found. Please add <h2 id='popup-prefecture-name'></h2> to your HTML popup structure.");
     if (!popupContent) console.error("Error: 'popup-content' not found.");
     if (!popupCloseButton) console.error("Error: 'close-popup-btn' not found.");
-	if (popupCloseButton) {
-        // IMPORTANT: Ensure you're calling the function with the correct name: closeChecklistPopup or closePopups
-        popupCloseButton.addEventListener('click', closeChecklistPopup); // Or closePopups if that's its name
-    } else {
-        console.error("ERROR: Close button 'close-popup-btn' not found!");
-    }
 	
 	if (checklistPopup) {
         checklistPopup.addEventListener('click', (event) => {
+			console.log('close' + event.target); // For debugging
             if (event.target === checklistPopup) {
                 closeChecklistPopup();
             }
@@ -81,18 +77,18 @@ document.addEventListener('DOMContentLoaded', async () => {
 	function updateCheckedList(groupingType = currentGroupingType) {
 		console.log("2. updateCheckedList called. Current grouping type:", groupingType);
 		console.log("2a. prefectureData at start of updateCheckedList:", JSON.parse(JSON.stringify(prefectureData)));
-
+/*
 		if (!checkedItemsPanel) {
 			console.error("Error: 'checkedItemsPanel' element not found. Check your HTML ID or variable assignment.");
 			return;
 		}
-
-		checkedItemsPanel.innerHTML = '';
+*/
+		//checkedItemsPanel.innerHTML = '';
 
 		const listHeading = document.createElement('h2');
 		listHeading.textContent = 'Checked Items';
 		// Add class if you style this H2: listHeading.classList.add('your-h2-class');
-		checkedItemsPanel.appendChild(listHeading);
+		//checkedItemsPanel.appendChild(listHeading);
 
 		let totalCheckedCount = 0; // To track if any items are checked overall
 
@@ -151,11 +147,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 				// Check if there are any prefectures (and thus items) within this region
 				const prefecturesInRegion = Object.keys(groupedByRegion[regionName]);
 				if (prefecturesInRegion.length > 0) { // <--- ENSURE THE REGION HAS AT LEAST ONE PREFECTURE WITH ITEMS
+					/*
 					const regionHeader = document.createElement('h3');
 					regionHeader.textContent = regionName;
 					regionHeader.classList.add('region-list-header');
 					checkedItemsPanel.appendChild(regionHeader);
-
+					*/
 					const sortedPrefecturesInRegion = prefecturesInRegion.sort((a, b) => {
 						 return a.localeCompare(b, 'ja', { sensitivity: 'base' });
 					});
@@ -508,6 +505,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 			prefDiv.appendChild(badge); // Add badge to the prefecture div
 
             abstractMapContainer.appendChild(prefDiv);
+console.log('checked-count-badge');
         });
     }
 
@@ -661,7 +659,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 				console.warn("Could not determine current prefecture name to update badge on dialog close.");
 			}
 			updateCheckedList();
-
+			renderCheckedItemsList();
 		} else {
 			console.error("Cannot close popup: 'checklistPopup' is null in closeChecklistPopup.");
 		}
@@ -669,11 +667,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 	
 	function closePopups() {
 		// Check if checklistPopup (your main popup overlay element) is actually found
+		console.log('close'); // For debugging
 		if (checklistPopup) {
 			// Remove the 'active' class (or 'show' class, depending on your CSS)
 			// to hide the popup and trigger any CSS transitions.
 			checklistPopup.classList.remove('active');
-
+			closeChecklistPopup();
 			// Restore the main page's scrollability.
 			document.body.style.overflow = '';
 		} else {
@@ -682,7 +681,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 		}
 	}
 
-	
+	function toggleIGPopup() {
+		console.log('ig btn clicked');
+	}
+
 	function savePrefectureData() {
 		// Implement your logic to save prefecture data (e.g., to localStorage)
 		// Example:
@@ -696,75 +698,26 @@ document.addEventListener('DOMContentLoaded', async () => {
 	
     instagramCloseButton.addEventListener('click', closePopups);
 
-	// This entire block must be in your script2.js
-	/*
-	function updateCheckedList() {
-		if (!checkedItemsPanel) {
-			console.error("Error: 'checkedItemsPanel' element not found. Check your HTML ID or variable assignment.");
-			return;
-		}
-
-		checkedItemsPanel.innerHTML = ''; // Clear previous content
-
-		// Add a heading for the list
-		const listHeading = document.createElement('h2');
-		listHeading.textContent = 'Checked Items';
-		checkedItemsPanel.appendChild(listHeading);
-		checkedItemsPanel.classList.add('checked-items-scrollable');
-
-
-		const allCheckedItems = []; // To store all checked items for the "no items" check
-		for (const prefectureName in prefectureData) {
-			if (prefectureData.hasOwnProperty(prefectureName)) {
-				const items = prefectureData[prefectureName];
-				const checkedInPrefecture = items.filter(item => item.checked);
-
-				if (checkedInPrefecture.length > 0) {
-					const prefectureHeader = document.createElement('h3');
-					prefectureHeader.textContent = prefectureName;
-					//prefectureHeader.classList.add('checked-items-scrollable'); // <--- ADD THIS CLASS
-					checkedItemsPanel.appendChild(prefectureHeader);
-
-					const ul = document.createElement('ul');
-					//ul.classList.add('checked-items-scrollable'); // <--- ADD THIS CLASS
-					checkedInPrefecture.forEach(item => {
-						const li = document.createElement('li');
-						li.textContent = item.name;
-						//li.classList.add('checked-items-scrollable'); // <--- ADD THIS CLASS
-						ul.appendChild(li);
-					});
-					checkedItemsPanel.appendChild(ul);
-					allCheckedItems.push(...checkedInPrefecture); // Add to overall list
-				}
-			}
-		}
-
-		if (allCheckedItems.length === 0) {
-			const noItemsMessage = document.createElement('p');
-			noItemsMessage.textContent = 'No items checked yet.';
-			noItemsMessage.classList.add('empty-list-message'); // <--- ADD THIS CLASS
-			checkedItemsPanel.appendChild(noItemsMessage);
-		}
-	}
-	*/
-
     window.addEventListener('click', (event) => {
-        if (event.target === prefecturePopup || event.target === instagramPopup) {
+		console.log(event.target);
+        if (event.target === checklistPopup || event.target === instagramPopup) {
             closePopups();
         }
     });
-
+/*
     displayedInstagramId.addEventListener('click', () => {
         instagramIdInput.value = currentInstagramId;
         instagramPopup.style.display = 'flex';
         instagramPopup.classList.add('show');
     });
-
-    saveInstagramIdButton.addEventListener('click', () => {
-        currentInstagramId = instagramIdInput.value.trim();
-        displayedInstagramId.textContent = currentInstagramId || 'N/A';
-        localStorage.setItem('instagramId', currentInstagramId);
-        closePopups();
+*/
+	popupCloseButton.addEventListener('click', closePopups);
+	
+    instagramNameBtn.addEventListener('click', () => {
+		console.log('ig btn clicked');
+        instagramIdInput.value = currentInstagramId;
+        instagramPopup.style.display = 'flex';
+        instagramPopup.classList.add('show');
     });
 
     savePngButton.addEventListener('click', () => {
@@ -772,10 +725,10 @@ document.addEventListener('DOMContentLoaded', async () => {
         savePngButton.classList.add('hide-on-screenshot');
         const counterBox = document.querySelector('.counter-box');
         const instagramDisplay = document.querySelector('.instagram-display');
-        const checkedItemsPanel = document.querySelector('.checked-items-panel');
+//        const checkedItemsPanel = document.querySelector('.checked-items-panel');
         if (counterBox) counterBox.classList.add('hide-on-screenshot');
         if (instagramDisplay) instagramDisplay.classList.add('hide-on-screenshot');
-        if (checkedItemsPanel) checkedItemsPanel.classList.add('hide-on-screenshot');
+//        if (checkedItemsPanel) checkedItemsPanel.classList.add('hide-on-screenshot');
 
 
         html2canvas(document.querySelector('.container'), {
@@ -793,7 +746,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             savePngButton.classList.remove('hide-on-screenshot');
             if (counterBox) counterBox.classList.remove('hide-on-screenshot');
             if (instagramDisplay) instagramDisplay.classList.remove('hide-on-screenshot');
-            if (checkedItemsPanel) checkedItemsPanel.classList.remove('hide-on-screenshot');
+//            if (checkedItemsPanel) checkedItemsPanel.classList.remove('hide-on-screenshot');
         });
     });
 
