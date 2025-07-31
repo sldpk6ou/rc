@@ -8,24 +8,23 @@
 </head>
 <body>
     <div class="main-wrapper"> 
-		<div id="checked-items-panel" id="checked-items-panel">
-			<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-            <h2>Checked Items</h2></div>
-			<button id="grouping-toggle-btn">地域でグループ化</button> </div>
-            <div id="checkedItemsList" class="checked-items-scrollable">
-                <p class="no-items-message">No items checked yet.</p>
-            </div>
-        </div>
-
         <div class="container">
-            <div class="counter-box hide-on-screenshot">
-                Selected Items: <span id="selectedItemsCount">0</span> / <span id="totalItemsCount">0</span>
+            <div class="abstract-map-container" id="abstract-map-container">
+				<div class="counter-box hide-on-screenshot">
+					Selected Items: <span id="selectedItemsCount">0</span> / <span id="totalItemsCount">0</span>
+				</div>
+
+			    <div class="instagram-display hide-on-screenshot"  id="instagramNameButton">
+					IG: <span id="displayedInstagramId">N/A</span>
+				</div>
             </div>
 
-            <div class="abstract-map-container" id="abstract-map-container">
-                </div>
+			<div id="checkedItemsList" class="checked-items-scrollable">
+				<p id="no-items-message"  class="no-items-message">No items checked yet.</p>
+				<button id="grouping-toggle-btn">地域でグループ化</button>
+			</div>
 
-            <div id="checklist-popup" class="popup-overlay">
+			<div id="checklist-popup" class="popup-overlay">
 				<div class="popup-content">
 					<h2 id="popup-prefecture-name"></h2> 
 					<div id="popup-content" class="popup-scroll-content"></div>
@@ -33,11 +32,7 @@
 				</div>
 			</div>
 
-            <div class="instagram-display hide-on-screenshot">
-                Instagram: <span id="displayedInstagramId">N/A</span>
-            </div>
-
-            <div id="instagramPopup" class="popup instagram-popup">
+            <div id="instagramPopup" class="instagram-popup">
                 <div class="popup-content">
                     <span class="close-button">&times;</span>
                     <h4>Enter your Instagram ID:</h4>
